@@ -150,12 +150,15 @@ The Async Processor defines standardized JSON schemas for requests published to 
 
 ## Message Queue Integrations
 
+> [!WARNING]
+> **Deprecation Notice:** `Redis Pub/Sub` (`messageQueueImpl: redis-pubsub`) is **deprecated** and will be removed in a future release. Use `redis-sortedset` or `gcp-pubsub`. See [llm-d-async#417](https://github.com/llm-d/llm-d-async/issues/417).
+
 Queue configurations define the input message queue source parameters (such as Redis keys or Pub/Sub subscription IDs) and specify the target **`llm-d-router` endpoint information** (such as URL path and target model endpoint) for dispatched requests.
 
 | Implementation | Characteristics |
 |---------------|-----------------|
 | Redis Sorted Set | Persisted, priority-ordered by deadline. Supports per-queue gate configurations. |
-| Redis Pub/Sub | Ephemeral, fan-out delivery. |
+| Redis Pub/Sub (deprecated) | Deprecated — ephemeral, fan-out delivery. Will be removed in a future release; use Redis Sorted Set or GCP Pub/Sub. |
 | GCP Pub/Sub | Cloud-native, scalable. Supports per-subscription gating. |
 
 ## Configuration

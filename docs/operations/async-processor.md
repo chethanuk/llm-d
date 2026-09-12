@@ -149,7 +149,7 @@ Set the **memory limit close to the request** (the footprint is bounded by `conc
 Prefer horizontal scaling over a single large worker pool once a replica is comfortably sized — it improves availability and spreads queue-read and gate-polling load.
 
 - **Increase replicas to raise total in-flight capacity** up to what the inference pool can absorb: `total in-flight = replicas × concurrency`. Beyond the inference pool's capacity, gates will hold requests closed and extra workers sit idle.
-- **No coordination required.** Replicas independently pull from the shared queue. Redis Sorted Set and GCP Pub/Sub both distribute messages across consumers; Redis Pub/Sub fans out (each replica sees all messages), so use Sorted Set or Pub/Sub-per-consumer semantics when load should be *shared* rather than duplicated.
+- **No coordination required.** Replicas independently pull from the shared queue. Redis Sorted Set and GCP Pub/Sub both distribute messages across consumers; Redis Pub/Sub (deprecated) fans out (each replica sees all messages), so use Sorted Set or Pub/Sub-per-consumer semantics when load should be *shared* rather than duplicated — see Deprecation Notice in [Message Queue Integrations](../architecture/advanced/batch/async-processor.md#message-queue-integrations).
 - **Gates remain effective across replicas.** Prometheus-based gates observe global inference-server saturation, so independent replicas converge on the same dispatch decisions without sharing state.
 - **Graceful shutdown.** The processor drains in-flight work on termination (`drainTimeout`, default `2m`). Ensure your pod `terminationGracePeriodSeconds` is at least `drainTimeout` so rolling updates and scale-down do not abandon in-flight requests.
 
