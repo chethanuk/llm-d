@@ -9,3 +9,4 @@ which are optimized for agentic workloads.
 * [GLM-5.2](./glm-5-2/README.md) - `zai-org/GLM-5.2-FP8` on H200.
 * [NVIDIA Nemotron 3 Ultra](./nemotron-3-ultra/README.md) - `NVIDIA-Nemotron-3-Ultra-550B` on H200.
 * [Qwen3.5-397B](./qwen3-5-397b/README.md) - `Qwen/Qwen3.5-397B-A17B-FP8` on TPU 7x (Torch TPU).
+* [Qwen3.8-27B](./qwen3-8-27b/README.md) - `Qwen/Qwen3.8-27B-FP8` on H100.
