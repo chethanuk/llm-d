@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../../../../../../tiered-prefix-cache/modelserver/gpu/vllm/native/fs/gke
+components:
+  - ../../common
+  - ../component
+# The tiered GKE overlay adds an init container without resources, which would
+# drop the pod to Burstable QoS; give it requests equal to limits.
+patches:
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: decode
+      spec:
+        template:
+          spec:
+            initContainers:
+              - name: fix-lustre-permissions
+                resources:
+                  requests: {cpu: 100m, memory: 64Mi}
+                  limits: {cpu: 100m, memory: 64Mi}
