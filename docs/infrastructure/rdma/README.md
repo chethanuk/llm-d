@@ -226,12 +226,14 @@ For Wide Expert Parallelism, map GPUs to specific HCAs for optimal topology:
 
 - Request `rdma/roce_gdr` device resources as shown above
 
-#### AWS (EFA) (deprecated - use upstream AWS images)
+#### AWS (EFA)
 
+- llm-d no longer builds EFA images; the `aws` overlays use [AWS Deep Learning Containers](https://aws.github.io/deep-learning-containers/) vLLM and SGLang images from `public.ecr.aws/deep-learning-containers`
+- Pods request EFA devices as the `vpc.amazonaws.com/efa` extended resource, exposed by the EFA device plugin: `helm repo add eks https://aws.github.io/eks-charts && helm install efa eks/aws-efa-k8s-device-plugin -n kube-system`. EKS-optimized AL2023 and Bottlerocket AMIs ship the host EFA software but not the plugin. See [Manage EFA devices on Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/node-efa.html)
 - NIXL uses the `libfabric` backend (not UCX) — see [Choosing a Transport Backend](#choosing-a-transport-backend)
 - Requires libfabric v1.21.0+ (or latest AWS EFA installer)
 - The libfabric plugin auto-discovers GPU-to-EFA topology via hwloc for optimal multi-rail placement
-- UCCL backend also supports EFA, however, it requires compiling with the `USE_EFA` option — see [UCCL](#uccl)
+- UCCL backend also supports EFA (built by default); select it with `UCCL_P2P_TRANSPORT=efa` — see [UCCL](#uccl)
 
 ## Verifying Network Performance
 
