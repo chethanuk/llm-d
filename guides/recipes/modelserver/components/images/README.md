@@ -35,6 +35,9 @@ This directory contains Kustomize Components that define the **default container
 │   └── release
 ├── gpu-vllm-omni
 │   └── release
+├── ascend-vllm
+│   └── a3
+│       └── release
 ├── biren-vllm
 │   └── release
 ├── metax-vllm

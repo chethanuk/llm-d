@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# vllm-ascend publishes one image per SoC; the -a3 tag targets Atlas A3 (910C).
+images:
+  - name: REPLACE_MODEL_SERVER_IMAGE
+    newName: quay.io/ascend/vllm-ascend
+    newTag: v0.23.0-a3

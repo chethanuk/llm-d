@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: decode
+spec:
+  replicas: 2
+  strategy:
+    type: Recreate
+  template:
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: modelserver
+          command:
+            - vllm
+            - serve
+          args:
+            - Qwen/Qwen3.6-27B
+            - --port=8000
+            - --tensor-parallel-size=2
+            # Qwen3.6 is a hybrid (GDN + attention) model. vllm-ascend v0.23.0 raises the
+            # attention block size to fit one mamba state page: 1536 at TP=2 with the fp32
+            # SSM state from the model config. Pinned so router/ascend-a3.values.yaml matches.
+            - --block-size=1536
+            - --enable-prefix-caching
+            - --max-model-len=32768
+            - --max-num-batched-tokens=16384
+            - --gpu-memory-utilization=0.90
+            - --compilation-config={"cudagraph_mode":"FULL_DECODE_ONLY"}
+            - --trust-remote-code
+            - --disable-access-log-for-endpoints=/health,/metrics,/v1/models
+          env:
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: llm-d-hf-token
+                  key: HF_TOKEN
+            - name: PYTORCH_NPU_ALLOC_CONF
+              value: "expandable_segments:True"
+            - name: HCCL_BUFFSIZE
+              value: "512"
+            - name: OMP_PROC_BIND
+              value: "false"
+            - name: OMP_NUM_THREADS
+              value: "1"
+            - name: TASK_QUEUE_ENABLE
+              value: "1"
+          resources:
+            limits:
+              cpu: "32"
+              memory: 256Gi
+              huawei.com/Ascend910: "2"
+            requests:
+              cpu: "16"
+              memory: 128Gi
+              huawei.com/Ascend910: "2"
+          volumeMounts:
+            - mountPath: /dev/shm
+              name: shm
+            - mountPath: /usr/local/Ascend/driver
+              name: ascend-driver
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /v1/models
+              port: modelserver
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 360
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: modelserver
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: modelserver
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+      volumes:
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 32Gi
+        # The image carries CANN but not the host driver (libascend_hal); mount it from the node.
+        - name: ascend-driver
+          hostPath:
+            path: /usr/local/Ascend/driver
+            type: Directory

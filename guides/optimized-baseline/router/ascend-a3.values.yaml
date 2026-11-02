@@ -1,0 +1,27 @@
+## optimized-baseline router overrides for Huawei Ascend A3 (Qwen3.6-27B, vllm-ascend).
+## Layer after optimized-baseline.values.yaml (deploy.accelerator_values sets ACCELERATOR_VALUES).
+##
+## Same plugin chain as the default values; the producer is sized for the A3 engines
+## (TP=2, --block-size=1536, 32k context). peakPrefillThroughput keeps the H100 default
+## until it is measured on A3.
+
+router:
+  epp:
+    pluginsCustomConfig:
+      optimized-baseline-plugins.yaml: |
+        apiVersion: llm-d.ai/v1
+        kind: EndpointPickerConfig
+        plugins:
+        - type: approx-prefix-cache-producer
+          parameters:
+            # Engine --block-size=1536 (hybrid model page size on vllm-ascend) and the 32k context.
+            blockSizeTokens: 1536
+            maxPrefixTokensToMatch: 32768
+        - type: inflight-load-producer
+        - type: prefix-cache-affinity-filter
+        - type: token-load-scorer
+        schedulingProfiles:
+        - name: default
+          plugins:
+          - pluginRef: prefix-cache-affinity-filter
+          - pluginRef: token-load-scorer

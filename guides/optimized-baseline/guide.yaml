@@ -96,6 +96,13 @@ support:
       providers:
         - {name: base, label: "Kubernetes (base)"}
       engines: {vllm: community}
+    "ascend/a3":
+      label: Huawei Ascend NPU
+      notes: "Atlas A3 (910C) · Qwen3.6-27B BF16 · 2 replicas × TP=2 (4 NPUs)"
+      model: Qwen/Qwen3.6-27B
+      providers:
+        - {name: base, label: "Kubernetes (base)"}
+      engines: {vllm: community}
     mthreads:
       label: Moore Threads GPU
       notes: "MTT S5000 · vLLM Qwen3-32B TP=8 (1 replica); SGLang colocated DeepSeek-V4-Flash (no PD)"
@@ -114,7 +121,7 @@ env:
     MONITORING: {default: "false", values: ["false", "true"]}
     MONITORING_VALUES: {default: ""}
 
-    ACCELERATOR_TYPE: {default: gpu, values: [gpu, amd, xpu, "tpu/v5p", "tpu/v6", "tpu/v7", "tpu/v7-dynamic-slice", npu, cpu, iluvatar, metax, biren, mthreads]}
+    ACCELERATOR_TYPE: {default: gpu, values: [gpu, amd, xpu, "tpu/v5p", "tpu/v6", "tpu/v7", "tpu/v7-dynamic-slice", npu, cpu, iluvatar, metax, biren, mthreads, "ascend/a3"]}
     MODEL_SERVER: {default: vllm, values: [vllm, sglang, trtllm, atom]}
     # gke: GKE overlays (ACCELERATOR_TYPE=gpu, tpu/*, cpu); amd-ci: AMD CI overlay (ACCELERATOR_TYPE=amd)
     INFRA_PROVIDER: {default: base, values: [base, gke, amd-ci]}
@@ -184,6 +191,11 @@ deploy:
     - when: {ACCELERATOR_TYPE: ["tpu/v7"], MODEL_SERVER: [vllm]}
       skip_in: [ci]
       run: export ACCELERATOR_VALUES="-f ${REPO_ROOT}/guides/${GUIDE_NAME}/router/tpu-v7.values.yaml"
+    # vllm-ascend serves the hybrid Qwen3.6-27B with --block-size=1536; the router's
+    # prefix producer must hash on the same block size.
+    - when: {ACCELERATOR_TYPE: ["ascend/a3"], MODEL_SERVER: [vllm]}
+      skip_in: [ci]
+      run: export ACCELERATOR_VALUES="-f ${REPO_ROOT}/guides/${GUIDE_NAME}/router/ascend-a3.values.yaml"
 
   standalone:
     - run: |

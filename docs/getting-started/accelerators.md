@@ -168,6 +168,34 @@ which on this runtime need a code path that cannot run alongside a KV connector.
 **Verification.** The maintainers listed above stand up the optimized-baseline overlay once
 per llm-d release tag against the release image and record the result.
 
+## Huawei Ascend
+
+Huawei Ascend NPUs are supported through [vllm-ascend](https://github.com/vllm-project/vllm-ascend),
+the vLLM hardware plugin, from the public `quay.io/ascend/vllm-ascend` image. The image is
+built per SoC; the optimized-baseline overlay (`modelserver/ascend/a3/vllm/`) uses the
+`v0.23.0-a3` tag for Atlas A3 (910C) and serves Qwen3.6-27B BF16 on two replicas of `TP=2`.
+This overlay has been rendered but not yet run on hardware, and no maintainer is named yet.
+
+**Cluster prerequisites:**
+
+- The Ascend device plugin ([MindCluster](https://www.hiascend.com/document/detail/zh/mindcluster/72rc1/deployer/deployerug/deployer_0001.html)), which
+  exposes `huawei.com/Ascend910`
+- The Ascend driver on each node at `/usr/local/Ascend/driver`; the overlay mounts it
+  read-only through a `hostPath`, because the image carries CANN but not the driver
+
+**Run as root, or add a passwd entry.** The image runs as root. With a non-root UID that has
+no `/etc/passwd` entry, `TP>1` fails at startup
+([vllm-ascend#9490](https://github.com/vllm-project/vllm-ascend/issues/9490)). If your
+cluster enforces `runAsNonRoot`, add an `/etc/passwd` entry for the UID.
+
+**Block size and the router.** Qwen3.6 is a hybrid model. vllm-ascend raises its attention
+block size to fit one mamba state page, which is 1536 tokens at `TP=2`. The overlay pins
+`--block-size=1536`, and [`router/ascend-a3.values.yaml`](../../guides/optimized-baseline/router/ascend-a3.values.yaml)
+sets the same block size on the router's prefix producer. Change both together.
+
+**Set `MODEL` when running the guide's steps.** Export `MODEL=Qwen/Qwen3.6-27B` so the
+validation and benchmark steps address the served model.
+
 ## CPU Inferencing
 
 CPU-only inference is supported for deployments without GPU accelerators. This expects 4th Gen Intel Xeon processors (Sapphire Rapids) or later, or equivalent AMD processors. Each replica requires a minimum of 64 CPU cores and 64GB RAM.
