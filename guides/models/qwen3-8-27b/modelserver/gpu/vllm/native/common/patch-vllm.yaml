@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: decode
+spec:
+  template:
+    spec:
+      containers:
+        - name: modelserver
+          env:
+            - name: PYTHONHASHSEED
+              value: "0"
+            # From the model recipe: the Rust OpenAI frontend (single API
+            # server); v0.32 supports the qwen3_coder and qwen3 parsers in it.
+            - name: VLLM_USE_RUST_FRONTEND
+              value: "1"
+          # GPU: 28.75 GiB of FP8 weights. Host: the 32 GiB CPU tier (in
+          # /dev/shm, counts toward the limit) plus ~20-25 GiB for the vLLM
+          # process, so 96Gi. Requests equal limits for Guaranteed QoS, so the
+          # pod is not first to be evicted while it holds the pinned CPU tier
+          # (the tiered fs base is Guaranteed too). 16 CPUs on every leaf: the
+          # tiered fs base allows 4, too few for 48 fs I/O threads plus vLLM.
+          resources:
+            requests:
+              cpu: "16"
+              memory: 96Gi
+              nvidia.com/gpu: 1
+            limits:
+              cpu: "16"
+              memory: 96Gi
+              nvidia.com/gpu: 1

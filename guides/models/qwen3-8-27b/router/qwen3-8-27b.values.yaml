@@ -1,0 +1,68 @@
+## Qwen3.8-27B guide overrides for the router.
+## Layer on top of: recipes/router/base.values.yaml
+## Same plugins, scorers and weights as
+## tiered-prefix-cache/router/single-host/tiered-prefix-cache-cpu.values.yaml;
+## only the CPU producer capacity and the model server labels differ.
+
+router:
+  extraServicePorts:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8081
+
+  epp:
+    pluginsConfigFile: "tiered-prefix-cache-plugins.yaml"
+    pluginsCustomConfig:
+      tiered-prefix-cache-plugins.yaml: |
+        apiVersion: llm-d.ai/v1
+        kind: EndpointPickerConfig
+        plugins:
+        - type: no-hit-lru-scorer
+          parameters:
+            # Use the HBM index for the cold-request check. If you do not
+            # set this, the router adds one more prefix producer.
+            prefixMatchInfoProducerName: gpu-prefix-cache-producer
+        - type: approx-prefix-cache-producer
+          name: gpu-prefix-cache-producer
+        - type: approx-prefix-cache-producer
+          name: cpu-prefix-cache-producer
+          parameters:
+            autoTune: false
+            # Unit: router blocks of 64 tokens.
+            # Value = CPU tier bytes per pod / CPU bytes stored per 64 tokens.
+            # Qwen3.8-27B is hybrid: vLLM pages its 784-token attention blocks
+            # (bf16 KV) to the size of one Gated DeltaNet (GDN) state, 3.06 MiB.
+            # The offloader stores whole chunks of 4 blocks (3136 tokens):
+            #   16 full-attention layers x 4 blocks = 64 KV pages
+            #   48 GDN layers x 1 state per chunk   = 48 state pages
+            #   1 MTP layer x 4 blocks             =  4 KV pages (~+6%)
+            #   116 pages x 3.06 MiB = 355.25 MiB per 3136 tokens = 7.25 MiB per 64
+            # 32 GiB / 7.25 MiB = 4519, rounded down to 4500. This is an
+            # estimate: confirm it against the CPU block count in the vLLM startup
+            # log (expected ~668 blocks of 16 pages, 49 MiB each).
+            # If you set --kv-cache-dtype fp8, blocks are 1568 tokens with the
+            # same page size, so the value doubles: use 9000.
+            lruCapacityPerServer: 4500
+        - type: queue-scorer
+        - type: kv-cache-utilization-scorer
+        - type: prefix-cache-scorer
+          name: gpu-prefix-cache-scorer
+          parameters:
+            prefixMatchInfoProducerName: gpu-prefix-cache-producer
+        - type: prefix-cache-scorer
+          name: cpu-prefix-cache-scorer
+          parameters:
+            prefixMatchInfoProducerName: cpu-prefix-cache-producer
+        schedulingProfiles:
+        - name: default
+          plugins:
+          - pluginRef: queue-scorer
+          - pluginRef: kv-cache-utilization-scorer
+          - pluginRef: gpu-prefix-cache-scorer
+          - pluginRef: cpu-prefix-cache-scorer
+          - pluginRef: no-hit-lru-scorer
+
+  modelServers:
+    matchLabels:
+      llm-d.ai/guide: "qwen3-8-27b"

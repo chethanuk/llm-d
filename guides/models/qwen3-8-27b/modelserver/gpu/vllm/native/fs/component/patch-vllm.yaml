@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: decode
+spec:
+  template:
+    spec:
+      containers:
+        - name: modelserver
+          args:
+            - |
+              exec vllm serve \
+                Qwen/Qwen3.8-27B-FP8 \
+                --tensor-parallel-size=1 \
+                --max-num-batched-tokens=8192 \
+                --enable-auto-tool-choice \
+                --tool-call-parser=qwen3_coder \
+                --reasoning-parser=qwen3 \
+                --mm-encoder-tp-mode=data \
+                --speculative-config '{"method":"mtp","num_speculative_tokens":3}' \
+                --kv-transfer-config '{
+                  "kv_connector": "OffloadingConnector",
+                  "kv_role": "kv_both",
+                  "kv_connector_extra_config": {
+                    "spec_name": "TieringOffloadingSpec",
+                    "cpu_bytes_to_use": 34359738368,
+                    "blocks_per_chunk": 4,
+                    "eviction_policy": "lru",
+                    "secondary_tiers": [
+                      {"type": "fs", "root_dir": "/mnt/files-storage", "n_read_threads": 32, "n_write_threads": 16}
+                    ]
+                  }
+                }' \
+                --shutdown-timeout=45
+      volumes:
+        # /dev/shm holds the 32 GiB CPU tier; 8 GiB headroom for IPC.
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 40Gi

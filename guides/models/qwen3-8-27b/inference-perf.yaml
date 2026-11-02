@@ -1,0 +1,97 @@
+# inference-perf job for the Qwen3.8-27B guide: a shared-prefix workload (modeled
+# on llm-d-benchmark's guide_tiered-prefix-cache_1 profile) against the
+# qwen3-8-27b-epp Service. Render with envsubst after exporting CONCURRENCY_LEVEL
+# and NUM_REQUESTS (see the guide's Benchmarking section).
+#
+# Sizing: the prefixes must not fit in HBM, or the offload tiers are never read.
+#   KV per token (bf16) = 16 layers x 2 x 4 KV heads x 256 x 2 B = 64 KiB
+#   one prefix          = 16000 tokens x 64 KiB = 1000 MiB (~0.98 GiB)
+#   all prefixes        = 100 groups x 1000 MiB = ~97.7 GiB
+#   per pod (2 pods)    = ~48.8 GiB > ~39 GiB HBM KV pool, so blocks are evicted.
+# The native connector writes every block to the tier, so tiers hold copies of
+# HBM, not extra space: the 32 GiB CPU tier is smaller than HBM and VARIANT=cpu
+# gains little here. The workload is sized for VARIANT=fs, whose shared
+# filesystem tier is far larger than ~97.7 GiB, so evicted prefixes reload from it.
+# One pass is 100 x 5 = 500 prompts: set NUM_REQUESTS to a multiple of 500
+# (for example 1500) so each prefix is revisited after it has been evicted.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inference-perf-config
+  labels:
+    app: inference-perf
+data:
+  config.yaml: |
+    load:
+      type: concurrent
+      num_workers: 8
+      worker_max_concurrency: 1000
+      request_timeout: 600
+      stages:
+      - num_requests: ${NUM_REQUESTS}
+        concurrency_level: ${CONCURRENCY_LEVEL}
+    api:
+      type: completion
+      streaming: true
+    server:
+      type: vllm
+      model_name: Qwen/Qwen3.8-27B-FP8
+      base_url: http://qwen3-8-27b-epp
+      ignore_eos: true
+    tokenizer:
+      pretrained_model_name_or_path: Qwen/Qwen3.8-27B-FP8
+    data:
+      type: shared_prefix
+      shared_prefix:
+        num_groups: 100
+        num_prompts_per_group: 5
+        system_prompt_len: 16000
+        question_len: 256
+        output_len: 256
+        enable_multi_turn_chat: false
+    report:
+      request_lifecycle:
+        summary: true
+        per_stage: true
+        per_request: true
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: inference-perf
+  labels:
+    app: inference-perf
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: inference-perf
+    spec:
+      containers:
+        - name: inference-perf
+          image: quay.io/inference-perf/inference-perf:v0.6.0
+          command: ["inference-perf"]
+          args: ["--config_file", "/etc/config/config.yaml"]
+          env:
+            - name: RAYON_NUM_THREADS
+              value: "4"
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: llm-d-hf-token
+                  key: HF_TOKEN
+                  optional: true
+          resources:
+            requests:
+              cpu: "4"
+              memory: 16Gi
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+              readOnly: true
+      restartPolicy: Never
+      volumes:
+        - name: config-volume
+          configMap:
+            name: inference-perf-config
