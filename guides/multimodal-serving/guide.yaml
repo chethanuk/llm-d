@@ -33,10 +33,15 @@ support:
       engines: {vllm: community}
     tpu/v7:
       label: Google TPU v7
-      notes: "GKE only (`INFRA_PROVIDER=gke`) · aggregated only · 8 replicas × 4 chips (`2x2x1`, TP=4) · needs the `medium` PriorityClass"
+      notes: "GKE only (`INFRA_PROVIDER=gke`) · aggregated only · 8 replicas × 4 chips (`2x2x1`, TP=4) · needs the `medium` PriorityClass · nightly lane currently skips deploy and benchmark (no TPU v7 capacity)"
       model: Qwen/Qwen3-VL-32B-Instruct
       providers:
         - {name: gke, label: "GKE"}
+      # Kept `validated` only because guide.py requires it while the nightly
+      # workflow exists. llm-d-infra reusable-ci-nightly-benchmark.yaml
+      # (skip-v7-warning job and the Benchmark `if:`) skips every tpu/v7 run,
+      # so this cell has no benchmark coverage. Move it to `community` once
+      # that lane is dropped, or back to plain `validated` once v7 capacity returns.
       engines: {vllm: validated}
 
 env:
