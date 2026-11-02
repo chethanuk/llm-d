@@ -5,4 +5,4 @@ kind: Component
 images:
   - name: REPLACE_MODEL_SERVER_IMAGE
     newName: quay.io/ascend/vllm-ascend
-    newTag: v0.23.0-a3
+    newTag: v0.23.0.post1-a3

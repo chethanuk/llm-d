@@ -98,7 +98,7 @@ support:
       engines: {vllm: community}
     "ascend/a3":
       label: Huawei Ascend NPU
-      notes: "Atlas A3 (910C) · Qwen3.6-27B BF16 · 2 replicas × TP=2 (4 NPUs)"
+      notes: "Draft, no maintainer yet · Atlas A3 (910C) · Qwen3.6-27B BF16 · 2 replicas × TP=2 (4 NPUs)"
       model: Qwen/Qwen3.6-27B
       providers:
         - {name: base, label: "Kubernetes (base)"}
@@ -191,8 +191,8 @@ deploy:
     - when: {ACCELERATOR_TYPE: ["tpu/v7"], MODEL_SERVER: [vllm]}
       skip_in: [ci]
       run: export ACCELERATOR_VALUES="-f ${REPO_ROOT}/guides/${GUIDE_NAME}/router/tpu-v7.values.yaml"
-    # vllm-ascend serves the hybrid Qwen3.6-27B with --block-size=1536; the router's
-    # prefix producer must hash on the same block size.
+    # vllm-ascend serves the hybrid Qwen3.6-27B with --block-size=1536. The router's
+    # prefix producer reads the engine's block size; this file is the fallback.
     - when: {ACCELERATOR_TYPE: ["ascend/a3"], MODEL_SERVER: [vllm]}
       skip_in: [ci]
       run: export ACCELERATOR_VALUES="-f ${REPO_ROOT}/guides/${GUIDE_NAME}/router/ascend-a3.values.yaml"

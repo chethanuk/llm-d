@@ -6,6 +6,9 @@ spec:
   replicas: 2
   strategy:
     type: Recreate
+  # Matches the startupProbe budget below (30s + 360 x 10s). Left at the 600s
+  # default, a slow first start trips ProgressDeadlineExceeded at ten minutes.
+  progressDeadlineSeconds: 3630
   template:
     spec:
       terminationGracePeriodSeconds: 30
@@ -18,16 +21,16 @@ spec:
             - Qwen/Qwen3.6-27B
             - --port=8000
             - --tensor-parallel-size=2
-            # Qwen3.6 is a hybrid (GDN + attention) model. vllm-ascend v0.23.0 raises the
-            # attention block size to fit one mamba state page: 1536 at TP=2 with the fp32
-            # SSM state from the model config. Pinned so router/ascend-a3.values.yaml matches.
+            # Qwen3.6 is a hybrid (GDN + attention) model. By our reading of vllm-ascend
+            # v0.23.0, it raises the attention block size to fit one mamba state page: 1536
+            # at TP=2 with the fp32 SSM state. Not yet observed on hardware. The router reads
+            # the engine's block size; router/ascend-a3.values.yaml is only a fallback.
             - --block-size=1536
             - --enable-prefix-caching
             - --max-model-len=32768
             - --max-num-batched-tokens=16384
             - --gpu-memory-utilization=0.90
             - --compilation-config={"cudagraph_mode":"FULL_DECODE_ONLY"}
-            - --trust-remote-code
             - --disable-access-log-for-endpoints=/health,/metrics,/v1/models
           env:
             - name: HF_TOKEN

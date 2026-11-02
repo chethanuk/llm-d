@@ -14,7 +14,8 @@ router:
         plugins:
         - type: approx-prefix-cache-producer
           parameters:
-            # Engine --block-size=1536 (hybrid model page size on vllm-ascend) and the 32k context.
+            # Fallback only: AutoTune prefers the block size the engine reports.
+            # 1536 matches the engine --block-size; 32768 matches the 32k context.
             blockSizeTokens: 1536
             maxPrefixTokensToMatch: 32768
         - type: inflight-load-producer

@@ -52,7 +52,7 @@ This guide includes configurations for the following accelerator and model serve
 | MetaX GPU | `metax` | `deepseek-ai/DeepSeek-R1-Distill-Llama-70B` | 🟡 community | — | — | — | 2 replicas × TP=8 (16 GPUs) |
 | Biren GPU | `biren` | `Qwen/Qwen3-32B` | 🟡 community | — | — | — | BR166M · 2 replicas × TP=8 (16 GPUs) |
 | Moore Threads GPU | `mthreads` | `Qwen/Qwen3-32B` | 🟡 community | 🟡 community | — | — | MTT S5000 · vLLM Qwen3-32B TP=8 (1 replica); SGLang colocated DeepSeek-V4-Flash (no PD) |
-| Huawei Ascend NPU | `ascend/a3` | `Qwen/Qwen3.6-27B` | 🟡 community | — | — | — | Atlas A3 (910C) · Qwen3.6-27B BF16 · 2 replicas × TP=2 (4 NPUs) |
+| Huawei Ascend NPU | `ascend/a3` | `Qwen/Qwen3.6-27B` | 🟡 community | — | — | — | Draft, no maintainer yet · Atlas A3 (910C) · Qwen3.6-27B BF16 · 2 replicas × TP=2 (4 NPUs) |
 
 ✅ validated: covered by a nightly E2E workflow · 🟡 community: maintained by the hardware vendor or community, not covered by nightly E2E · ❌ not supported: tracked in the linked issue · — no configuration.
 <!-- guide:support end -->
