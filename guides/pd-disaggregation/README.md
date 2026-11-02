@@ -32,7 +32,7 @@ This guide includes configurations for the following accelerator and model serve
 <!-- guide:support start -->
 | Accelerator | `ACCELERATOR_TYPE` | Served model | vLLM | SGLang | Notes |
 | --- | --- | --- | --- | --- | --- |
-| NVIDIA GPU | `gpu` | `openai/gpt-oss-120b` | ✅ validated | ✅ validated | H200 · 1P (TP=1) + 1D (TP=4), 5 GPUs; SGLang 1P (TP=2) + 1D (TP=2) · NIXL |
+| NVIDIA GPU | `gpu` | `openai/gpt-oss-120b` | ✅ validated | ✅ validated | H200 · 1P (TP=1) + 1D (TP=4), 5 GPUs; SGLang 1P (TP=2) + 1D (TP=2) · NIXL · `aws` (EFA) has no nightly; tested manually on p5en.48xlarge in [#1554](https://github.com/llm-d/llm-d/pull/1554) |
 | AMD GPU | `amd` | `openai/gpt-oss-120b` | ✅ validated | — | AMD Instinct · 1P (TP=1) + 1D (TP=4), 5 GPUs · NIXL |
 | Intel XPU | `xpu` | `Qwen/Qwen3-0.6B` | ✅ validated | 🟡 community | Intel GPU via DRA · 1P + 1D, 1 GPU each · NIXL (SGLang: TP=1, NIXL over TCP) |
 | Google TPU v5p | `tpu/v5p` | `Qwen/Qwen3-32B` | ✅ validated | — | `2x2x1` v5p nodes on GKE · 1P + 1D, 4 chips each (TP=4) · TPUConnector · nightly runs on Spot capacity |

@@ -13,7 +13,7 @@ support:
   accelerators:
     gpu:
       label: NVIDIA GPU
-      notes: "H200 · 1P (TP=1) + 1D (TP=4), 5 GPUs; SGLang 1P (TP=2) + 1D (TP=2) · NIXL"
+      notes: "H200 · 1P (TP=1) + 1D (TP=4), 5 GPUs; SGLang 1P (TP=2) + 1D (TP=2) · NIXL · `aws` (EFA) has no nightly; tested manually on p5en.48xlarge in [#1554](https://github.com/llm-d/llm-d/pull/1554)"
       model: openai/gpt-oss-120b
       providers:
         - {name: base, label: "Kubernetes (base)"}
