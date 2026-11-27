@@ -37,6 +37,8 @@ spec:
             - "--context-length"
             - "8192"
             - "--enable-metrics"
+            - "--tool-call-parser=qwen"
+            - "--reasoning-parser=qwen3"
             - "--uvicorn-access-log-exclude-prefixes"
             - "/health"
             - "/metrics"
