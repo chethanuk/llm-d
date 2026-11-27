@@ -316,7 +316,7 @@ kubectl apply -n ${NAMESPACE} \
 ```
 <!-- guide:deploy.modelserver.standard[0] end -->
 
-The GPU overlays enable tool calling and reasoning parsing with `--enable-auto-tool-choice --tool-call-parser=openai --reasoning-parser=openai_gptoss`.
+The GPU overlays enable tool calling and reasoning parsing: vLLM with `--enable-auto-tool-choice --tool-call-parser=openai --reasoning-parser=openai_gptoss`, and SGLang with `--tool-call-parser=gpt-oss --reasoning-parser=gpt-oss`.
 
 </details>
 <details data-when="ACCELERATOR_TYPE=xpu">
