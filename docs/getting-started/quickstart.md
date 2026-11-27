@@ -90,6 +90,8 @@ bash ${REPO_ROOT}/guides/scripts/wait-for-pods-ready.sh -l llm-d.ai/guide=optimi
 > [!NOTE]
 > Model server pods may take several minutes to start as they need to download the model weights.
 
+<!-- -->
+
 > [!TIP]
 > If the pods stay in `Pending`, the cluster could not schedule them. Run `kubectl describe pod -l llm-d.ai/guide=optimized-baseline -n ${NAMESPACE}` and look at the events: `Insufficient nvidia.com/gpu` means the cluster has fewer GPUs than the default 4-GPU configuration needs. See the accelerator prerequisite above.
 
