@@ -6,6 +6,19 @@ spec:
   replicas: 2
   template:
     spec:
+      # Each replica needs most of one NUMA node's memory, so prefer one replica
+      # per host. This is a soft rule: a single-node cluster still colocates them.
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    llm-d.ai/guide: optimized-baseline
+                    llm-d.ai/accelerator-variant: cpu
+                    llm-d.ai/role: decode
+                topologyKey: kubernetes.io/hostname
       containers:
         - name: modelserver
           command: ["vllm", "serve"]
