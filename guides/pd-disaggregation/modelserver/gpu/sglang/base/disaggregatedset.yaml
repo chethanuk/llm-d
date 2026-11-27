@@ -59,6 +59,8 @@ spec:
                     - --log-level=info
                     - --enable-metrics
                     - --uvicorn-access-log-exclude-prefixes=/metrics
+                    - --tool-call-parser=gpt-oss
+                    - --reasoning-parser=gpt-oss
                   env:
                     - name: HF_TOKEN
                       valueFrom:
@@ -182,6 +184,8 @@ spec:
                     - --log-level=info
                     - --enable-metrics
                     - --uvicorn-access-log-exclude-prefixes=/metrics
+                    - --tool-call-parser=gpt-oss
+                    - --reasoning-parser=gpt-oss
                   env:
                     - name: HF_TOKEN
                       valueFrom:
