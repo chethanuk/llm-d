@@ -18,6 +18,9 @@ spec:
             - "--block-size=64"
             - "--kv-events-config"
             - '{"enable_kv_cache_events":true,"publisher":"zmq","endpoint":"$(KV_EVENTS_ENDPOINT)","replay_endpoint":"$(KV_EVENTS_REPLAY_ENDPOINT)","topic":"kv@$(POD_IP):$(POD_PORT)@Qwen/Qwen3-32B"}'
+            - "--enable-auto-tool-choice"
+            - "--tool-call-parser=hermes"
+            - "--reasoning-parser=qwen3"
             # Drain in-flight requests on SIGTERM. Sized with the grace period in
             # recipes/modelserver/components/graceful-shutdown; raise both together.
             - "--shutdown-timeout=45"
