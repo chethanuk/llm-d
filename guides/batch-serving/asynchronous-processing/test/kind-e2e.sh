@@ -8,7 +8,7 @@
 #   * uses a dedicated KUBECONFIG in a temp dir (your current kubecontext is
 #     never read or modified)
 #
-# The optimized-baseline CPU modelserver defaults to a gated 3B model requesting
+# The optimized-baseline CPU modelserver defaults to a small model requesting
 # 64 CPU / 64Gi, which will not fit a laptop. This script patches it down to a
 # tiny ungated model (default: facebook/opt-125m) with small resources so the
 # whole chain runs on a developer machine.

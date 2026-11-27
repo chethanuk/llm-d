@@ -34,15 +34,15 @@ rows because the serving engine changes prefill throughput.
 | `tpu/v7/vllm` | Google TPU v7x · vLLM | tpu v0.22.0 | 8 | Qwen3-32B | **27336** |
 | `npu/vllm` | Rebellions NPU · vLLM | vllm-rbln 0.12.0 | 1 | gpt-oss-120B | **12171** |
 | `xpu/vllm` | Intel XPU · vLLM | xpu v0.7.0 | 1 | Qwen3-0.6B | 1970 ‡ |
-| `cpu/vllm` | CPU · vLLM (AMX) | cpu v0.6.0 | 1 | Llama-3.2-3B-Instruct | **1970** |
+| `cpu/vllm` | CPU · vLLM (AMX) | cpu v0.6.0 | 1 | Qwen3-1.7B | 1970 ‡ |
 
 - **15928** — the plugin default; measured for the reference path (`gpu/vllm`, Qwen3-32B on
   H100 80 GB, TP=2).
 - **30720** — measured for `gpu/sglang` (Qwen3-32B, same H100 80 GB / TP=2): SGLang reaches
   ~1.9× the vLLM prefill throughput on identical hardware, which is exactly why the serving
   engine is its own row.
-- **1970** — measured for `cpu/vllm` (Llama-3.2-3B) on **GCP C3 (Intel Sapphire Rapids, AMX)**,
-  bf16, using the former `llm-d-cpu:v0.6.0` image. bf16 **requires AMX or AVX512-BF16**.
+- **1970** — measured for `cpu/vllm` with its former default model (Llama-3.2-3B) on
+  **GCP C3 (Intel Sapphire Rapids, AMX)**, bf16, using the former `llm-d-cpu:v0.6.0` image. bf16 **requires AMX or AVX512-BF16**.
   Calibrated at `CHUNK_SIZE=2048` (the CPU vLLM chunked-prefill default), not 8192.
   The upstream CPU image has not been recalibrated.
 - **26290 / 27336** — measured for `tpu/v6/vllm` (TPU v6e, 2x4 = **8 chips**) and `tpu/v7/vllm`
@@ -68,8 +68,8 @@ rows because the serving engine changes prefill throughput.
   the since-retired `gpu/vllm/gpt-oss` overlay) is an H100 MXFP4 number and applying it here would open the saturation gate when it should stay shut.
 - **‡ proxy, not measured** — these paths are not yet calibrated, so they borrow the closest
   measured value as a starting point: the **AMD** paths use the same-engine H100 values
-  (`amd/vllm` ← `gpu/vllm` 15928, `amd/sglang` ← `gpu/sglang` 30720), and **XPU** uses the
-  `cpu/vllm` value (1970). Replace each with a real `calibrate.sh` run on that hardware when available.
+  (`amd/vllm` ← `gpu/vllm` 15928, `amd/sglang` ← `gpu/sglang` 30720), **CPU** keeps the 1970
+  measured on its former Llama-3.2-3B default (not re-measured on the current model), and **XPU** uses that same 1970. Replace each with a real `calibrate.sh` run on that hardware when available.
 
 **Related (other guides):** the former Qwen3-Coder-480B guide (replaced by
 [Qwen3.5-397B](../../../models/qwen3-5-397b/README.md); see its
