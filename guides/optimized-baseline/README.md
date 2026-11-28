@@ -298,6 +298,8 @@ For model sources, caching, and startup optimization, see the [Model Loading and
 
 The NVIDIA GPU, AMD, CPU, Intel XPU, TPU v5p/v6/v7 (including dynamic-slice), MetaX, and Moore Threads vLLM overlays drain in-flight requests during rollouts and scale-down: `--shutdown-timeout=45`, plus a 15s `preStop` sleep and a 75s termination grace period from the [`graceful-shutdown` component](../recipes/modelserver/components/graceful-shutdown/kustomization.yaml) (120s on MetaX and Moore Threads). The Iluvatar, Biren, Enflame, and Rebellions NPU overlays do not drain yet. To tune these, see [Graceful Shutdown & Request Draining](../../docs/operations/lifecycle/graceful-shutdown.md).
 
+**Upgrading a CPU install that served `Llama-3.2-3B-Instruct`:** the CPU overlay's `llm-d.ai/model` label is part of the Deployment's immutable selector, so `kubectl apply` fails with `field is immutable`. Delete the old Deployment first with `kubectl delete deployment -n ${NAMESPACE} optimized-baseline-cpu-vllm-decode`.
+
 **Apply the Kustomize overlays** for your specific backend (`INFRA_PROVIDER=gke` applies only to accelerators available on GKE: NVIDIA GPU, TPU, and CPU; use `base` elsewhere):
 
 <!-- tabs:start group=modelserver -->

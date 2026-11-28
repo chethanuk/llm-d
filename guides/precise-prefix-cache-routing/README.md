@@ -233,6 +233,8 @@ The router renders prompts over HTTP (see [step 3](#3-render-tokenizer-endpoints
 
 For model sources, caching, and startup optimization, see the [Model Loading and Startup Acceleration operations guide](../../docs/operations/startup/model-loading-and-startup.md).
 
+**Upgrading a CPU install that served `Llama-3.2-3B-Instruct`:** the CPU overlay's `llm-d.ai/model` label is part of the Deployment's immutable selector, so `kubectl apply` fails with `field is immutable`. Delete the old Deployment first with `kubectl delete deployment -n ${NAMESPACE} precise-prefix-cache-routing-cpu-vllm-decode`.
+
 **Apply the Kustomize overlay** for your backend (`INFRA_PROVIDER=gke` applies only to accelerators available on GKE: NVIDIA GPU, TPU, and CPU; use `base` elsewhere). Every overlay starts the model server with KV-cache events enabled (`--kv-events-config`) and exposes the per-pod ZMQ socket (port `5556`) the router subscribes to:
 
 <!-- guide:deploy.modelserver start -->
